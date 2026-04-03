@@ -2,11 +2,11 @@
 
 > A polished, modern assignment tracker built for students, combining a professional UI with practical features like dashboard analytics, calendar planning, and task lifecycle management.
 
-## 🚀 Project Summary
+##  Project Summary
 
 Assignment Tracker is a full-featured front-end web app with optional Go backend support. It empowers users to manage coursework deadlines, prioritize tasks, and track completion progress via a sleek and responsive interface inspired by tools like Todoist and Notion.
 
-## ⭐ Core Features
+##  Core Features
 
 - **Professional UI** with modern gradients, soft shadows, and responsive layout
 - **Dashboard view**: stats counters for total, completed, pending, overdue assignments
@@ -19,7 +19,7 @@ Assignment Tracker is a full-featured front-end web app with optional Go backend
 - **JSON export** of assignments for backup/transfer
 - **Optional backend** via Go + Gin + GORM + MySQL
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 - Frontend
   - React 19
@@ -32,7 +32,7 @@ Assignment Tracker is a full-featured front-end web app with optional Go backend
   - Go (Gin)
   - GORM (MySQL)
 
-## 📦 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -70,7 +70,7 @@ go run main.go
 
 4. Frontend auto-detects backend and uses API if available.
 
-## 🧩 Usage Guide
+##  Usage Guide
 
 ### Add a new assignment
 
@@ -110,7 +110,7 @@ index.html
 package.json
 ```
 
-## ✅ Future Improvements
+##  Future Improvements
 
 - authentication and multi-user spaces
 - persistent backend data storage (API + DB + JWT sessions)
@@ -120,7 +120,7 @@ package.json
 - calendar integrations (Google, Outlook)
 - file attachments and notes
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork
 2. Create branch: `feat/your-feature`
