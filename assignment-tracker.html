@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssignFlow — Assignment Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e28;
+    --bg4: #222736;
+    --card: #161a24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f2f8;
+    --text2: #9099b0;
+    --text3: #5c6480;
+    --accent: #6c63ff;
+    --accent2: #8b85ff;
+    --accent-glow: rgba(108,99,255,0.25);
+    --green: #22c77a;
+    --green-bg: rgba(34,199,122,0.1);
+    --green-border: rgba(34,199,122,0.25);
+    --amber: #f5a623;
+    --amber-bg: rgba(245,166,35,0.1);
+    --amber-border: rgba(245,166,35,0.25);
+    --red: #ff5e6c;
+    --red-bg: rgba(255,94,108,0.1);
+    --red-border: rgba(255,94,108,0.25);
+    --blue: #38b6ff;
+    --blue-bg: rgba(56,182,255,0.1);
+    --blue-border: rgba(56,182,255,0.25);
+    --pink: #ff6eb4;
+    --pink-bg: rgba(255,110,180,0.1);
+    --sidebar-w: 260px;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+  .logo { padding: 28px 24px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: #fff; box-shadow: 0 0 20px var(--accent-glow); }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; color: var(--text); }
+  .logo-text span { color: var(--accent2); }
+  .sidebar-section { padding: 16px 12px 0; }
+  .sidebar-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); padding: 0 12px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition); color: var(--text2); font-size: 14px; font-weight: 400; margin-bottom: 2px; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(108,99,255,0.12); color: var(--accent2); font-weight: 500; }
+  .nav-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; min-width: 20px; text-align: center; }
+  .nav-badge.red { background: var(--red); }
+  .nav-badge.amber { background: var(--amber); color: #111; }
+  .nav-icon { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  svg { display: block; }
+  .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); }
+  .user-card:hover { background: var(--bg3); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #6c63ff, #ff6eb4); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: #fff; flex-shrink: 0; }
+  .user-info .name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .user-info .role { font-size: 11px; color: var(--text3); }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+  .topbar { height: 64px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .topbar-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.4px; flex: 1; }
+  .search-wrap { display: flex; align-items: center; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; gap: 8px; width: 260px; height: 38px; transition: border-color var(--transition); }
+  .search-wrap:focus-within { border-color: var(--accent); }
+  .search-wrap input { background: none; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; width: 100%; }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 16px; height: 38px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition); border: none; }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 0 30px rgba(108,99,255,0.4); }
+  .btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg4); color: var(--text); }
+  .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition); color: var(--text2); position: relative; }
+  .icon-btn:hover { background: var(--bg4); color: var(--text); }
+  .notif-dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; background: var(--red); border-radius: 50%; border: 1px solid var(--card); }
+
+  .content { padding: 28px; flex: 1; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden; transition: border-color var(--transition), transform var(--transition); animation: fadeIn 0.4s ease both; }
+  .stat-card:nth-child(1){animation-delay:.05s} .stat-card:nth-child(2){animation-delay:.1s} .stat-card:nth-child(3){animation-delay:.15s} .stat-card:nth-child(4){animation-delay:.2s}
+  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.s-purple::before { background: var(--accent); }
+  .stat-card.s-green::before { background: var(--green); }
+  .stat-card.s-amber::before { background: var(--amber); }
+  .stat-card.s-red::before { background: var(--red); }
+  .stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .stat-icon.purple { background: rgba(108,99,255,0.15); color: var(--accent2); }
+  .stat-icon.green { background: var(--green-bg); color: var(--green); }
+  .stat-icon.amber { background: var(--amber-bg); color: var(--amber); }
+  .stat-icon.red { background: var(--red-bg); color: var(--red); }
+  .stat-trend { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; }
+  .trend-up { background: var(--green-bg); color: var(--green); }
+  .trend-down { background: var(--red-bg); color: var(--red); }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 13px; color: var(--text2); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 28px; }
+  .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-hd h2 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .view-all { font-size: 12px; color: var(--accent2); cursor: pointer; }
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-chip { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text2); transition: all var(--transition); font-family: 'DM Sans', sans-serif; }
+  .filter-chip:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
+  .filter-chip.active { background: rgba(108,99,255,0.15); border-color: rgba(108,99,255,0.4); color: var(--accent2); }
+
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { padding: 12px 16px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); text-align: left; background: var(--bg2); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; transition: color var(--transition); white-space: nowrap; }
+  thead th:hover { color: var(--text2); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td { padding: 14px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  .assignment-title-cell { display: flex; align-items: center; gap: 10px; }
+  .subject-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .assignment-name { font-weight: 500; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+  .priority-badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+  .priority-badge.high { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .priority-badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+  .priority-badge.low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
+  .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+  .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .status-badge.todo { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); }
+  .status-badge.todo::before { background: var(--text3); }
+  .status-badge.inprog { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .status-badge.inprog::before { background: var(--blue); }
+  .status-badge.review { background: var(--pink-bg); color: var(--pink); border: 1px solid rgba(255,110,180,0.3); }
+  .status-badge.review::before { background: var(--pink); }
+  .status-badge.done { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .status-badge.done::before { background: var(--green); }
+
+  .due-date { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .due-date.overdue { color: var(--red); }
+  .due-date.soon { color: var(--amber); }
+  .progress-bar-wrap { background: var(--bg3); height: 5px; border-radius: 3px; overflow: hidden; margin-bottom: 3px; width: 90px; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .progress-text { font-size: 10px; color: var(--text3); }
+  .row-actions { display: flex; gap: 6px; opacity: 0; transition: opacity var(--transition); }
+  tbody tr:hover .row-actions { opacity: 1; }
+  .row-action-btn { width: 26px; height: 26px; border-radius: 6px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); transition: all var(--transition); }
+  .row-action-btn:hover { background: var(--bg4); color: var(--text); }
+
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .deadline-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .deadline-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .deadline-date-box { width: 38px; text-align: center; flex-shrink: 0; background: var(--bg3); border-radius: var(--radius-sm); padding: 5px 4px; border: 1px solid var(--border); }
+  .deadline-date-box .day { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; line-height: 1; color: var(--text); }
+  .deadline-date-box .month { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); margin-top: 1px; }
+  .deadline-date-box.urgent { border-color: var(--red-border); background: var(--red-bg); }
+  .deadline-date-box.urgent .day { color: var(--red); }
+  .deadline-date-box.urgent .month { color: var(--red); }
+  .deadline-info { flex: 1; min-width: 0; }
+  .deadline-title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+  .deadline-meta { font-size: 11px; color: var(--text3); }
+
+  .donut-wrap { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; }
+  .donut-svg { transform: rotate(-90deg); }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .legend-count { font-weight: 600; color: var(--text); margin-left: auto; }
+
+  .subject-progress-item { margin-bottom: 14px; }
+  .subject-progress-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .subject-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .subject-pct { font-size: 12px; color: var(--text2); }
+  .subject-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .subject-fill { height: 100%; border-radius: 3px; }
+
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .activity-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .activity-text { font-size: 12px; color: var(--text2); line-height: 1.5; flex: 1; }
+  .activity-text strong { color: var(--text); font-weight: 500; }
+  .activity-time { font-size: 10px; color: var(--text3); flex-shrink: 0; white-space: nowrap; }
+
+  .quick-add { background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(255,110,180,0.05)); border: 1px solid rgba(108,99,255,0.2); border-radius: var(--radius); padding: 20px; }
+  .quick-add h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 11px; color: var(--text2); font-weight: 500; }
+  .form-input, .form-select { height: 36px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 0 12px; outline: none; transition: border-color var(--transition); width: 100%; }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--text3); }
+  .form-select { cursor: pointer; -webkit-appearance: none; }
+  .form-select option { background: var(--bg2); }
+  .form-submit { margin-top: 12px; width: 100%; height: 40px; background: var(--accent); border: none; border-radius: var(--radius-sm); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all var(--transition); box-shadow: 0 0 20px var(--accent-glow); }
+  .form-submit:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--card); border: 1px solid var(--border2); border-radius: 18px; padding: 28px; width: 520px; max-width: 90vw; max-height: 85vh; overflow-y: auto; transform: scale(0.95) translateY(10px); transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .modal-close { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--bg3); border: 1px solid var(--border); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition); }
+  .modal-close:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+  .modal-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .modal-full { grid-column: 1 / -1; }
+  .modal-form-group { display: flex; flex-direction: column; gap: 6px; }
+  .modal-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .modal-input, .modal-select, .modal-textarea { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 9px 12px; outline: none; transition: border-color var(--transition); width: 100%; }
+  .modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: var(--accent); }
+  .modal-textarea { height: 80px; resize: vertical; }
+  .modal-select option { background: var(--bg2); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 12px; }
+  .cal-day-name { text-align: center; font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); padding-bottom: 6px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 11px; border-radius: 6px; cursor: pointer; transition: all var(--transition); color: var(--text2); position: relative; }
+  .cal-day:hover { background: var(--bg3); color: var(--text); }
+  .cal-day.today { background: var(--accent); color: #fff; font-weight: 600; }
+  .cal-day.has-deadline::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--red); }
+  .cal-day.today::after { background: rgba(255,255,255,0.8); }
+  .cal-day.other-month { color: var(--text3); opacity: 0.4; }
+
+  .toast-container { position: fixed; bottom: 28px; right: 28px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); min-width: 260px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); animation: slideUp 0.3s ease; pointer-events: all; }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .toast.info { border-left: 3px solid var(--blue); }
+
+  .empty-state { padding: 40px; text-align: center; }
+  .empty-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .empty-desc { font-size: 13px; color: var(--text3); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+  @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .two-col { grid-template-columns: 1fr; } .bottom-row { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .main { margin-left: 0; } .stats-row { grid-template-columns: 1fr 1fr; } .content { padding: 16px; } }
+
+  /* ── View System ──────────────────────────────────────── */
+  .view-content { display: none; }
+  .view-content.active { display: flex; flex-direction: column; flex: 1; }
+
+  /* ── AI Analyzer ──────────────────────────────────────── */
+  .ai-page-header { margin-bottom: 24px; }
+  .ai-page-header h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .ai-page-header p { font-size: 13px; color: var(--text2); margin-top: 6px; line-height: 1.6; }
+
+  .behavior-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .behavior-panel-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .behavior-panel-hd h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .behavior-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 1200px) { .behavior-grid { grid-template-columns: repeat(3, 1fr); } .risk-cards-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 800px) { .behavior-grid { grid-template-columns: repeat(2, 1fr); } }
+  .bh-field { display: flex; flex-direction: column; gap: 6px; }
+  .bh-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
+  .bh-input, .bh-select { height: 38px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 0 12px; outline: none; transition: border-color var(--transition); width: 100%; }
+  .bh-input:focus, .bh-select:focus { border-color: var(--accent); }
+  .bh-select option { background: var(--bg2); }
+  .bh-hint { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  .analyze-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6c63ff, #9d59ef); color: #fff; border: none; padding: 0 24px; height: 44px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 0 28px rgba(108,99,255,0.4); transition: all 0.25s; position: relative; overflow: hidden; }
+  .analyze-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%); transform: translateX(-200%); transition: transform 0.5s; }
+  .analyze-btn:hover::after { transform: translateX(200%); }
+  .analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(108,99,255,0.55); }
+  .analyze-btn:active { transform: translateY(0); }
+  .analyze-btn:disabled { opacity: 0.65; pointer-events: none; }
+
+  .ai-summary-banner { border-radius: var(--radius); padding: 22px 24px; margin-bottom: 24px; border: 1px solid; display: flex; align-items: flex-start; gap: 18px; animation: fadeIn 0.4s ease; position: relative; overflow: hidden; }
+  .ai-summary-banner.ok { background: rgba(34,199,122,0.07); border-color: rgba(34,199,122,0.22); }
+  .ai-summary-banner.warn { background: rgba(245,166,35,0.07); border-color: rgba(245,166,35,0.22); }
+  .ai-summary-banner.danger { background: rgba(255,94,108,0.07); border-color: rgba(255,94,108,0.22); }
+  .ai-summary-icon { font-size: 34px; line-height: 1; flex-shrink: 0; }
+  .ai-summary-text { flex: 1; }
+  .ai-summary-text h2 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 5px; }
+  .ai-summary-text p { font-size: 12.5px; color: var(--text2); line-height: 1.65; }
+  .ai-summary-stats { display: flex; gap: 24px; margin-top: 14px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .ai-stat-num { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; line-height: 1; }
+  .ai-stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+  .risk-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(370px, 1fr)); gap: 16px; }
+  .risk-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; animation: fadeIn 0.4s ease both; transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition); }
+  .risk-card:hover { transform: translateY(-3px); border-color: var(--border2); box-shadow: 0 10px 32px rgba(0,0,0,0.25); }
+  .risk-card-accent { height: 3px; }
+  .risk-card-accent.green { background: linear-gradient(90deg, #22c77a, #4ade80); }
+  .risk-card-accent.yellow { background: linear-gradient(90deg, #d4b800, #facc15); }
+  .risk-card-accent.orange { background: linear-gradient(90deg, #cf6e00, #fb923c); }
+  .risk-card-accent.red { background: linear-gradient(90deg, #ff5e6c, #f43f5e); box-shadow: 0 0 12px rgba(255,94,108,0.4); }
+  .risk-card-top { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); }
+  .risk-card-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .risk-card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.45; flex: 1; }
+  .risk-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+  .risk-badge.green { background: rgba(34,199,122,0.12); color: #22c77a; border: 1px solid rgba(34,199,122,0.3); }
+  .risk-badge.yellow { background: rgba(212,184,0,0.14); color: #c9af00; border: 1px solid rgba(212,184,0,0.3); }
+  .risk-badge.orange { background: rgba(207,110,0,0.14); color: #e07a00; border: 1px solid rgba(207,110,0,0.3); }
+  .risk-badge.red { background: rgba(255,94,108,0.14); color: #ff5e6c; border: 1px solid rgba(255,94,108,0.3); }
+
+  .risk-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .risk-meta-item { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 3px; }
+  .risk-meta-item strong { color: var(--text2); font-weight: 500; }
+  .risk-meter-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px; color: var(--text3); }
+  .risk-pct { font-weight: 800; font-size: 15px; }
+  .risk-pct.green { color: #22c77a; }
+  .risk-pct.yellow { color: #c9af00; }
+  .risk-pct.orange { color: #e07a00; }
+  .risk-pct.red { color: #ff5e6c; }
+  .risk-meter-bar { height: 7px; border-radius: 4px; background: var(--bg3); overflow: hidden; }
+  .risk-meter-fill { height: 100%; border-radius: 4px; transition: width 1.3s cubic-bezier(0.22, 1, 0.36, 1); width: 0; }
+  .risk-meter-fill.green { background: linear-gradient(90deg, #22c77a, #4ade80); }
+  .risk-meter-fill.yellow { background: linear-gradient(90deg, #c9af00, #facc15); }
+  .risk-meter-fill.orange { background: linear-gradient(90deg, #cf6e00, #fb923c); }
+  .risk-meter-fill.red { background: linear-gradient(90deg, #ff5e6c, #f43f5e); box-shadow: 0 0 8px rgba(255,94,108,0.5); }
+
+  .risk-card-body { padding: 16px 20px 20px; }
+  .warning-box { background: rgba(255,255,255,0.025); border: 1px dashed rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 12.5px; color: var(--text2); line-height: 1.8; margin-bottom: 14px; display: flex; gap: 10px; }
+  .warning-icon { flex-shrink: 0; font-size: 17px; margin-top: 1px; }
+  .warning-text { flex: 1; }
+
+  .plan-box { background: rgba(108,99,255,0.05); border: 1px solid rgba(108,99,255,0.15); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .plan-box-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent2); margin-bottom: 12px; }
+  .plan-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .plan-item-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .plan-item-val { font-size: 12px; font-weight: 600; color: var(--text); }
+  .plan-item-val.critical { color: #ff5e6c; }
+  .plan-item-val.high { color: #e07a00; }
+  .plan-item-val.medium { color: var(--amber); }
+  .plan-item-val.low { color: var(--green); }
+
+  .ai-empty { text-align: center; padding: 64px 20px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+  .ai-empty-icon { font-size: 54px; margin-bottom: 18px; }
+  .ai-empty h3 { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  .ai-empty p { font-size: 13px; color: var(--text3); max-width: 380px; margin: 0 auto; line-height: 1.65; }
+
+  .risk-sort-note { font-size: 11px; color: var(--text3); margin-bottom: 14px; }
+
+  @keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(255,94,108,0)} 50%{box-shadow:0 0 0 6px rgba(255,94,108,0.15)} }
+  .risk-card.level-red { animation: fadeIn 0.4s ease both, pulse-red 3s ease-in-out 1s 3; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">AF</div>
+    <div class="logo-text">Assign<span>Flow</span></div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Menu</div>
+    <div class="nav-item active" onclick="setNav(this,'dashboard')" data-view="dashboard">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      All Assignments
+      <span class="nav-badge">12</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Upcoming
+      <span class="nav-badge amber">3</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+      Priority
+      <span class="nav-badge red">5</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      Completed
+    </div>
+    <div class="nav-item" onclick="setNav(this,'dashboard')" data-view="dashboard">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      Calendar
+    </div>
+    <div class="nav-item" onclick="setNav(this,'ai')" data-view="ai" id="nav-ai">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3h-1v1a4 4 0 0 1-8 0v-1H7a3 3 0 0 1-3-3v-1a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/></svg></span>
+      AI Analyzer
+      <span class="nav-badge" style="background:linear-gradient(135deg,#6c63ff,#ff6eb4)">NEW</span>
+    </div>
+  </div>
+  <div class="sidebar-section" style="margin-top:20px">
+    <div class="sidebar-label">Subjects</div>
+    <div class="nav-item" onclick="setNav(this)"><span style="width:8px;height:8px;border-radius:50%;background:#6c63ff;flex-shrink:0"></span> Mathematics</div>
+    <div class="nav-item" onclick="setNav(this)"><span style="width:8px;height:8px;border-radius:50%;background:#22c77a;flex-shrink:0"></span> Physics</div>
+    <div class="nav-item" onclick="setNav(this)"><span style="width:8px;height:8px;border-radius:50%;background:#38b6ff;flex-shrink:0"></span> Computer Science</div>
+    <div class="nav-item" onclick="setNav(this)"><span style="width:8px;height:8px;border-radius:50%;background:#f5a623;flex-shrink:0"></span> Chemistry</div>
+    <div class="nav-item" onclick="setNav(this)"><span style="width:8px;height:8px;border-radius:50%;background:#ff6eb4;flex-shrink:0"></span> English Literature</div>
+    <div class="nav-item" style="color:var(--accent2);font-size:12px" onclick="openModal()"><span style="font-size:16px;line-height:1">+</span> Add Subject</div>
+  </div>
+  <div class="sidebar-section" style="margin-top:20px">
+    <div class="sidebar-label">More</div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span>
+      Analytics
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span>
+      Settings
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar">RS</div>
+      <div class="user-info">
+        <div class="name">Rahul Sharma</div>
+        <div class="role">Student · Sem 6</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">Dashboard</div>
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search assignments…" id="searchInput" oninput="renderTable()">
+    </div>
+    <div class="icon-btn" title="Notifications">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="notif-dot"></div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Assignment
+    </button>
+  </header>
+
+  <div id="view-dashboard" class="view-content active"><div class="content">
+    <div class="stats-row">
+      <div class="stat-card s-purple">
+        <div class="stat-top">
+          <div class="stat-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <span class="stat-trend trend-up">↑ 4 this week</span>
+        </div>
+        <div class="stat-num" id="totalCount">12</div>
+        <div class="stat-label">Total Assignments</div>
+      </div>
+      <div class="stat-card s-green">
+        <div class="stat-top">
+          <div class="stat-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="stat-trend trend-up">↑ 2 today</span>
+        </div>
+        <div class="stat-num" style="color:var(--green)" id="doneCount">5</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-card s-amber">
+        <div class="stat-top">
+          <div class="stat-icon amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <span class="stat-trend trend-up">Active now</span>
+        </div>
+        <div class="stat-num" style="color:var(--amber)" id="inProgCount">4</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card s-red">
+        <div class="stat-top">
+          <div class="stat-icon red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+          <span class="stat-trend trend-down">Action needed</span>
+        </div>
+        <div class="stat-num" style="color:var(--red)" id="overdueCount">3</div>
+        <div class="stat-label">Overdue</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-hd">
+          <h2>Assignments</h2>
+          <span class="view-all">View all →</span>
+        </div>
+        <div class="filters">
+          <button class="filter-chip active" onclick="filterStatus(this,'all')">All</button>
+          <button class="filter-chip" onclick="filterStatus(this,'todo')">To Do</button>
+          <button class="filter-chip" onclick="filterStatus(this,'inprog')">In Progress</button>
+          <button class="filter-chip" onclick="filterStatus(this,'review')">Review</button>
+          <button class="filter-chip" onclick="filterStatus(this,'done')">Done</button>
+          <button class="filter-chip" onclick="filterStatus(this,'high')">High Priority</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="padding-left:20px">Assignment</th>
+                <th>Subject</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Progress</th>
+                <th style="width:70px"></th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+          <div class="section-hd">
+            <h2 style="font-size:14px" id="calTitle">April 2026</h2>
+            <div style="display:flex;gap:6px">
+              <div class="row-action-btn" onclick="prevMonth()">←</div>
+              <div class="row-action-btn" onclick="nextMonth()">→</div>
+            </div>
+          </div>
+          <div class="calendar-grid" id="calGrid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="section-hd"><h2 style="font-size:14px">Progress Overview</h2></div>
+          <div class="donut-wrap">
+            <svg width="90" height="90" class="donut-svg" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#1a1e28" stroke-width="12"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#6c63ff" stroke-width="12" stroke-dasharray="41.6 178" stroke-linecap="round"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#38b6ff" stroke-width="12" stroke-dasharray="55.5 178" stroke-dashoffset="-41.6" stroke-linecap="round"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#ff6eb4" stroke-width="12" stroke-dasharray="13.9 178" stroke-dashoffset="-97.1" stroke-linecap="round"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#22c77a" stroke-width="12" stroke-dasharray="69.5 178" stroke-dashoffset="-111" stroke-linecap="round"/>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> To Do <span class="legend-count" id="l-todo">3</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> In Progress <span class="legend-count" id="l-prog">4</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div> Review <span class="legend-count" id="l-rev">1</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Done <span class="legend-count" id="l-done">5</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="subject-progress-item"><div class="subject-progress-top"><span class="subject-name">Mathematics</span><span class="subject-pct">80%</span></div><div class="subject-bar"><div class="subject-fill" style="width:80%;background:var(--accent)"></div></div></div>
+            <div class="subject-progress-item"><div class="subject-progress-top"><span class="subject-name">Physics</span><span class="subject-pct">60%</span></div><div class="subject-bar"><div class="subject-fill" style="width:60%;background:var(--green)"></div></div></div>
+            <div class="subject-progress-item"><div class="subject-progress-top"><span class="subject-name">Computer Science</span><span class="subject-pct">90%</span></div><div class="subject-bar"><div class="subject-fill" style="width:90%;background:var(--blue)"></div></div></div>
+            <div class="subject-progress-item"><div class="subject-progress-top"><span class="subject-name">Chemistry</span><span class="subject-pct">30%</span></div><div class="subject-bar"><div class="subject-fill" style="width:30%;background:var(--amber)"></div></div></div>
+            <div class="subject-progress-item" style="margin-bottom:0"><div class="subject-progress-top"><span class="subject-name">English Literature</span><span class="subject-pct">50%</span></div><div class="subject-bar"><div class="subject-fill" style="width:50%;background:var(--pink)"></div></div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-hd"><h2 style="font-size:14px">Upcoming Deadlines</h2></div>
+          <div class="deadline-item">
+            <div class="deadline-date-box urgent"><div class="day">05</div><div class="month">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-title">Differential Equations Worksheet</div><div class="deadline-meta">Mathematics · <span style="color:var(--red)">Tomorrow!</span></div></div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-date-box"><div class="day">08</div><div class="month">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-title">Optics Lab Report</div><div class="deadline-meta">Physics · 4 days</div></div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-date-box"><div class="day">12</div><div class="month">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-title">Algorithm Analysis Essay</div><div class="deadline-meta">Computer Science · 8 days</div></div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-date-box"><div class="day">18</div><div class="month">Apr</div></div>
+            <div class="deadline-info"><div class="deadline-title">Organic Chemistry Problem Set</div><div class="deadline-meta">Chemistry · 14 days</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <div class="quick-add">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Quick Add
+        </h3>
+        <div class="form-row">
+          <div class="form-group full">
+            <label class="form-label">Assignment Title</label>
+            <input type="text" class="form-input" placeholder="e.g. Chapter 5 Exercises" id="qa-title">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select class="form-select" id="qa-subject">
+              <option value="">Select…</option>
+              <option>Mathematics</option><option>Physics</option><option>Computer Science</option><option>Chemistry</option><option>English Literature</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-input" id="qa-due">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="qa-priority">
+              <option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select class="form-select">
+              <option>Assignment</option><option>Project</option><option>Exam Prep</option><option>Lab Report</option>
+            </select>
+          </div>
+        </div>
+        <button class="form-submit" onclick="quickAdd()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Assignment
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="section-hd"><h2 style="font-size:14px">Recent Activity</h2></div>
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:var(--green-bg);color:var(--green)">✓</div>
+          <div class="activity-text"><strong>Calculus Problem Set 3</strong> marked as completed</div>
+          <span class="activity-time">2m ago</span>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:var(--blue-bg);color:var(--blue)">✎</div>
+          <div class="activity-text"><strong>Optics Lab Report</strong> progress updated to 60%</div>
+          <span class="activity-time">1h ago</span>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:var(--accent-glow);color:var(--accent2)">+</div>
+          <div class="activity-text"><strong>Algorithm Analysis Essay</strong> added to Computer Science</div>
+          <span class="activity-time">3h ago</span>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:var(--red-bg);color:var(--red)">!</div>
+          <div class="activity-text"><strong>Organic Chemistry Problem Set</strong> deadline approaching</div>
+          <span class="activity-time">5h ago</span>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:var(--amber-bg);color:var(--amber)">★</div>
+          <div class="activity-text"><strong>Linear Algebra Quiz Prep</strong> priority changed to High</div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:var(--pink-bg);color:var(--pink)">✎</div>
+          <div class="activity-text"><strong>Shakespeare Essay</strong> moved to Review stage</div>
+          <span class="activity-time">Yesterday</span>
+        </div>
+      </div>
+    </div>
+    </div><!-- /.content -->
+  </div><!-- /#view-dashboard -->
+
+  <!-- ═══════════════════ AI ANALYZER VIEW ═══════════════════ -->
+  <div id="view-ai" class="view-content">
+    <div class="content">
+
+      <div class="ai-page-header">
+        <h1>🧠 AI Risk Analyzer</h1>
+        <p>Analyzing your procrastination patterns since you started college. Let's see how badly you're about to fail.</p>
+      </div>
+
+      <!-- Behavior Profile Panel -->
+      <div class="behavior-panel">
+        <div class="behavior-panel-hd">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Your Study Profile
+          </h3>
+          <span style="font-size:11px;color:var(--text3)">Saved automatically</span>
+        </div>
+        <div class="behavior-grid">
+          <div class="bh-field">
+            <label class="bh-label" for="ph-hours">Daily Study Time</label>
+            <input id="ph-hours" type="number" class="bh-input" min="0.5" max="16" step="0.5" value="3" placeholder="e.g. 3" oninput="aiProfileChanged()">
+            <div class="bh-hint">hours per day (avg)</div>
+          </div>
+          <div class="bh-field">
+            <label class="bh-label" for="ph-effort">Default Effort (hrs)</label>
+            <input id="ph-effort" type="number" class="bh-input" min="1" max="50" step="0.5" value="4" placeholder="e.g. 4" oninput="aiProfileChanged()">
+            <div class="bh-hint">if effort is unknown</div>
+          </div>
+          <div class="bh-field">
+            <label class="bh-label" for="ph-procr">Procrastination Level</label>
+            <select id="ph-procr" class="bh-select" onchange="aiProfileChanged()">
+              <option value="low">Low — I start early</option>
+              <option value="medium" selected>Medium — last minute</option>
+              <option value="high">High — what deadline?</option>
+            </select>
+          </div>
+          <div class="bh-field">
+            <label class="bh-label" for="ph-comprate">Past Completion Rate</label>
+            <input id="ph-comprate" type="number" class="bh-input" min="0" max="100" value="70" placeholder="e.g. 70" oninput="aiProfileChanged()">
+            <div class="bh-hint">% of deadlines you met</div>
+          </div>
+          <div class="bh-field">
+            <label class="bh-label" for="ph-delay">Your Typical Start</label>
+            <input id="ph-delay" type="number" class="bh-input" min="0" max="14" value="1" placeholder="e.g. 1" oninput="aiProfileChanged()">
+            <div class="bh-hint">days before deadline you start</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Analyze My Doom
+          </button>
+          <span style="font-size:12px;color:var(--text3)">Runs AI risk analysis on all active assignments</span>
+        </div>
+      </div>
+
+      <!-- Analysis Results -->
+      <div id="ai-results">
+        <div class="ai-empty">
+          <div class="ai-empty-icon">🤖</div>
+          <h3>Ready to Judge You</h3>
+          <p>Fill in your profile above and smash "Analyze My Doom" to get your personalized, brutally honest reality check.</p>
+        </div>
+      </div>
+
+    </div><!-- /.content (ai) -->
+  </div><!-- /#view-ai -->
+
+</div><!-- /.main -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Assignment</div>
+      <div class="modal-close" onclick="closeModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group modal-full">
+        <label class="modal-label">Assignment Title *</label>
+        <input type="text" class="modal-input" placeholder="Enter assignment title…" id="m-title">
+      </div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group">
+        <label class="modal-label">Subject *</label>
+        <select class="modal-select" id="m-subject">
+          <option value="">Select subject…</option>
+          <option>Mathematics</option><option>Physics</option><option>Computer Science</option><option>Chemistry</option><option>English Literature</option>
+        </select>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Assignment Type</label>
+        <select class="modal-select">
+          <option>Assignment</option><option>Project</option><option>Exam Prep</option><option>Lab Report</option><option>Essay</option><option>Problem Set</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group">
+        <label class="modal-label">Priority</label>
+        <select class="modal-select" id="m-priority">
+          <option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>
+        </select>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Status</label>
+        <select class="modal-select" id="m-status">
+          <option value="todo">To Do</option><option value="inprog">In Progress</option><option value="review">Review</option><option value="done">Done</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group">
+        <label class="modal-label">Due Date *</label>
+        <input type="date" class="modal-input" id="m-due">
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Estimated Hours</label>
+        <input type="number" class="modal-input" placeholder="e.g. 3" min="0.5" step="0.5">
+      </div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group modal-full">
+        <label class="modal-label">Notes / Description</label>
+        <textarea class="modal-textarea" placeholder="Add any notes, references, or instructions…"></textarea>
+      </div>
+    </div>
+    <div class="modal-form-row">
+      <div class="modal-form-group">
+        <label class="modal-label">Progress (%) — <span id="progress-val">0%</span></label>
+        <input type="range" min="0" max="100" value="0" id="m-progress" style="width:100%;cursor:pointer" oninput="document.getElementById('progress-val').textContent=this.value+'%'">
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Tags</label>
+        <input type="text" class="modal-input" placeholder="e.g. exam, important">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addFromModal()">Add Assignment</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const SUBJECTS = { 'Mathematics':'#6c63ff','Physics':'#22c77a','Computer Science':'#38b6ff','Chemistry':'#f5a623','English Literature':'#ff6eb4' };
+let assignments = [
+  {id:1,title:'Differential Equations Worksheet',subject:'Mathematics',priority:'high',status:'inprog',due:'2026-04-05',progress:45},
+  {id:2,title:'Optics Lab Report',subject:'Physics',priority:'high',status:'inprog',due:'2026-04-08',progress:60},
+  {id:3,title:'Algorithm Analysis Essay',subject:'Computer Science',priority:'medium',status:'todo',due:'2026-04-12',progress:10},
+  {id:4,title:'Organic Chemistry Problem Set',subject:'Chemistry',priority:'medium',status:'todo',due:'2026-04-18',progress:0},
+  {id:5,title:'Shakespeare Essay',subject:'English Literature',priority:'low',status:'review',due:'2026-04-20',progress:85},
+  {id:6,title:'Calculus Problem Set 3',subject:'Mathematics',priority:'medium',status:'done',due:'2026-04-02',progress:100},
+  {id:7,title:'Wave Mechanics Notes',subject:'Physics',priority:'low',status:'done',due:'2026-04-01',progress:100},
+  {id:8,title:'Linear Algebra Quiz Prep',subject:'Mathematics',priority:'high',status:'inprog',due:'2026-04-06',progress:30},
+  {id:9,title:'Data Structures Project',subject:'Computer Science',priority:'high',status:'inprog',due:'2026-04-15',progress:55},
+  {id:10,title:'Titration Lab Report',subject:'Chemistry',priority:'low',status:'done',due:'2026-03-28',progress:100},
+  {id:11,title:'Romanticism Essay',subject:'English Literature',priority:'medium',status:'todo',due:'2026-04-22',progress:5},
+  {id:12,title:'Integration Practice',subject:'Mathematics',priority:'low',status:'done',due:'2026-03-30',progress:100},
+];
+let currentFilter='all', nextId=13, calYear=2026, calMonth=3;
+
+function formatDate(d) {
+  if(!d) return {text:'—',cls:'',tag:''};
+  const p=d.split('-'), dt=new Date(+p[0],+p[1]-1,+p[2]);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const diff=Math.round((dt-today)/86400000);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const text=`${dt.getDate()} ${months[dt.getMonth()]}`;
+  if(diff<0) return {text,cls:'overdue',tag:'Overdue'};
+  if(diff===0) return {text,cls:'soon',tag:'Today!'};
+  if(diff===1) return {text,cls:'soon',tag:'Tomorrow'};
+  if(diff<=3) return {text,cls:'soon',tag:`${diff}d`};
+  return {text,cls:'',tag:''};
+}
+
+function renderTable() {
+  const body=document.getElementById('tableBody');
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  let filtered=assignments.filter(a=>{
+    if(currentFilter==='high') return a.priority==='high';
+    if(currentFilter!=='all') return a.status===currentFilter;
+    return true;
+  });
+  if(search) filtered=filtered.filter(a=>a.title.toLowerCase().includes(search)||a.subject.toLowerCase().includes(search));
+  if(!filtered.length) {
+    body.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-title">No assignments found</div><div class="empty-desc">Try a different filter or add a new assignment</div></div></td></tr>`;
+    updateStats(); return;
+  }
+  const statusMap={todo:'To Do',inprog:'In Progress',review:'Review',done:'Done'};
+  body.innerHTML=filtered.map(a=>{
+    const color=SUBJECTS[a.subject]||'#888';
+    const due=formatDate(a.due);
+    const progColor=a.progress>=80?'var(--green)':a.progress>=40?'var(--blue)':'var(--accent)';
+    return `<tr>
+      <td style="padding-left:20px"><div class="assignment-title-cell"><div class="subject-dot" style="background:${color}"></div><div class="assignment-name" title="${a.title}">${a.title}</div></div></td>
+      <td style="font-size:12px;color:var(--text2)">${a.subject}</td>
+      <td><span class="priority-badge ${a.priority}">${a.priority.charAt(0).toUpperCase()+a.priority.slice(1)}</span></td>
+      <td><span class="status-badge ${a.status}">${statusMap[a.status]}</span></td>
+      <td><div class="due-date ${due.cls}">${due.text}${due.tag?` <span style="font-size:10px">(${due.tag})</span>`:''}</div></td>
+      <td><div class="progress-bar-wrap"><div class="progress-fill" style="width:${a.progress}%;background:${progColor}"></div></div><div class="progress-text">${a.progress}%</div></td>
+      <td><div class="row-actions">
+        <div class="row-action-btn" onclick="cycleStatus(${a.id})" title="Next status"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="row-action-btn" onclick="deleteA(${a.id})" style="color:var(--red)" title="Delete"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div>
+      </div></td>
+    </tr>`;
+  }).join('');
+  updateStats();
+}
+
+function updateStats() {
+  const today=new Date(); today.setHours(0,0,0,0);
+  document.getElementById('totalCount').textContent=assignments.length;
+  document.getElementById('doneCount').textContent=assignments.filter(a=>a.status==='done').length;
+  document.getElementById('inProgCount').textContent=assignments.filter(a=>a.status==='inprog').length;
+  document.getElementById('overdueCount').textContent=assignments.filter(a=>{
+    if(a.status==='done') return false;
+    const p=a.due.split('-'); return new Date(+p[0],+p[1]-1,+p[2])<today;
+  }).length;
+  document.getElementById('l-todo').textContent=assignments.filter(a=>a.status==='todo').length;
+  document.getElementById('l-prog').textContent=assignments.filter(a=>a.status==='inprog').length;
+  document.getElementById('l-rev').textContent=assignments.filter(a=>a.status==='review').length;
+  document.getElementById('l-done').textContent=assignments.filter(a=>a.status==='done').length;
+}
+
+function filterStatus(btn,f) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active'); currentFilter=f; renderTable();
+}
+
+function cycleStatus(id) {
+  const a=assignments.find(x=>x.id===id); if(!a) return;
+  const cycle=['todo','inprog','review','done'];
+  a.status=cycle[(cycle.indexOf(a.status)+1)%cycle.length];
+  if(a.status==='done') a.progress=100;
+  renderTable();
+  showToast(`Status → ${({todo:'To Do',inprog:'In Progress',review:'Review',done:'Done'})[a.status]}`,a.status==='done'?'success':'info');
+}
+
+function deleteA(id) {
+  assignments=assignments.filter(a=>a.id!==id);
+  renderTable(); showToast('Assignment deleted','error');
+}
+
+function quickAdd() {
+  const title=document.getElementById('qa-title').value.trim();
+  const subject=document.getElementById('qa-subject').value;
+  const due=document.getElementById('qa-due').value;
+  const priority=document.getElementById('qa-priority').value;
+  if(!title||!subject||!due){showToast('Please fill in all fields','error');return;}
+  assignments.unshift({id:nextId++,title,subject,priority,status:'todo',due,progress:0});
+  document.getElementById('qa-title').value='';
+  document.getElementById('qa-due').value='';
+  renderTable(); showToast('Assignment added!','success');
+}
+
+function addFromModal() {
+  const title=document.getElementById('m-title').value.trim();
+  const subject=document.getElementById('m-subject').value;
+  const due=document.getElementById('m-due').value;
+  const priority=document.getElementById('m-priority').value;
+  const status=document.getElementById('m-status').value;
+  const progress=parseInt(document.getElementById('m-progress').value);
+  if(!title||!subject||!due){showToast('Please fill required fields','error');return;}
+  assignments.unshift({id:nextId++,title,subject,priority,status,due,progress});
+  closeModal(); renderTable(); showToast('Assignment added!','success');
+}
+
+function openModal(){document.getElementById('modal').classList.add('open');document.getElementById('m-title').focus();}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+
+function showToast(msg,type='info') {
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  const col=type==='success'?'var(--green)':type==='error'?'var(--red)':'var(--blue)';
+  t.innerHTML=`<span style="font-weight:700;color:${col}">${{success:'✓',error:'✗',info:'i'}[type]}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},2800);
+}
+
+function setNav(el, viewName) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  if (viewName) {
+    document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + viewName);
+    if (target) target.classList.add('active');
+    const topbarTitle = document.querySelector('.topbar-title');
+    if (topbarTitle) {
+      const titles = { dashboard: 'Dashboard', ai: 'AI Risk Analyzer' };
+      topbarTitle.textContent = titles[viewName] || 'Dashboard';
+    }
+    const addBtn = document.querySelector('.btn-primary');
+    if (addBtn) addBtn.style.display = viewName === 'ai' ? 'none' : '';
+  }
+}
+
+// ═══════════════════ AI ANALYZER ENGINE ═══════════════════
+let _aiProfile = {};
+
+function aiLoadProfile() {
+  try { _aiProfile = JSON.parse(localStorage.getItem('af_profile') || '{}'); } catch(e) { _aiProfile = {}; }
+  _aiProfile = Object.assign({ dailyHours:3, effort:4, procrastination:'medium', completionRate:70, startDelay:1 }, _aiProfile);
+  const f = id => document.getElementById(id);
+  if (f('ph-hours'))    f('ph-hours').value    = _aiProfile.dailyHours;
+  if (f('ph-effort'))   f('ph-effort').value   = _aiProfile.effort;
+  if (f('ph-procr'))    f('ph-procr').value    = _aiProfile.procrastination;
+  if (f('ph-comprate')) f('ph-comprate').value = _aiProfile.completionRate;
+  if (f('ph-delay'))    f('ph-delay').value    = _aiProfile.startDelay;
+}
+
+function aiProfileChanged() {
+  _aiProfile.dailyHours    = parseFloat(document.getElementById('ph-hours').value)    || 3;
+  _aiProfile.effort        = parseFloat(document.getElementById('ph-effort').value)   || 4;
+  _aiProfile.procrastination = document.getElementById('ph-procr').value;
+  _aiProfile.completionRate  = parseInt(document.getElementById('ph-comprate').value) || 70;
+  _aiProfile.startDelay    = parseInt(document.getElementById('ph-delay').value)      || 1;
+  localStorage.setItem('af_profile', JSON.stringify(_aiProfile));
+}
+
+const PROCRAST_MULT = { low: 0.8, medium: 1.3, high: 1.95 };
+
+function aiCalcRisk(a) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const parts = a.due.split('-');
+  const deadline = new Date(+parts[0], +parts[1]-1, +parts[2]);
+  const daysLeft = Math.round((deadline - today) / 86400000);
+  const effort = a.effortHours || _aiProfile.effort || 4;
+  const remainingWork = effort * (1 - a.progress / 100);
+  const pm = PROCRAST_MULT[_aiProfile.procrastination] || 1.3;
+  const effectiveDailyHours = _aiProfile.dailyHours / pm;
+  const effectiveDays = Math.max(0, daysLeft - _aiProfile.startDelay * pm * 0.5);
+  const hoursAvailable = effectiveDays * effectiveDailyHours;
+
+  let risk;
+  if (daysLeft < 0) {
+    risk = 97;
+  } else if (daysLeft === 0) {
+    risk = remainingWork > 0 ? 91 : 8;
+  } else if (hoursAvailable <= 0) {
+    risk = 88;
+  } else {
+    const workload = Math.min(80, (remainingWork / Math.max(0.01, hoursAvailable)) * 68);
+    const behaviorPenalty = (1 - Math.min(100, _aiProfile.completionRate) / 100) * 22;
+    const urgencyBonus = Math.max(0, (4 - daysLeft) * 4);
+    risk = workload + behaviorPenalty + urgencyBonus;
+    risk = Math.min(97, Math.max(2, risk));
+  }
+  return { risk: Math.round(risk), daysLeft, effort, remainingWork, hoursAvailable: Math.max(0, hoursAvailable) };
+}
+
+function aiRiskLevel(risk) {
+  if (risk <= 30) return { cls:'green',  label:'🟢 Green',  desc:'You\'re fine… suspiciously fine' };
+  if (risk <= 60) return { cls:'yellow', label:'🟡 Yellow', desc:'You\'re playing with fire' };
+  if (risk <= 80) return { cls:'orange', label:'🟠 Orange', desc:'This is getting ugly' };
+  return               { cls:'red',    label:'🔴 Red',    desc:'You are absolutely in trouble' };
+}
+
+const AI_WARNINGS = {
+  green: [
+    "Look at you, being all responsible. Genuinely suspicious behavior. Keep it up before you ruin your reputation.",
+    "Wow, you're ahead of schedule. Are you feeling okay? Should we call someone? This is very unlike you.",
+    "Green zone — the only time you'll feel at peace this semester. Treasure it. It's fleeting.",
+    "You're doing well on this one! If only the same enthusiasm applied to everything else in your life.",
+    "Doing great! At this velocity, you might even have time to sleep. Wild concept, we know.",
+  ],
+  yellow: [
+    "You're playing with fire, champ. Yellow doesn't mean 'safe' — it means 'this is your last civilized warning.'",
+    "Oh, you're in the yellow zone. Cool. Cool cool cool. No alarms yet, but you should be mildly terrified.",
+    "You're technically fine, like the Titanic before it hit the iceberg. Same energy, honestly.",
+    "At this rate, you'll finish… eventually. Maybe. The math gives you 50/50 odds. Vegas wouldn't take that bet.",
+    "Yellow! The color of caution, autumn leaves, and your GPA if this becomes a trend.",
+  ],
+  orange: [
+    "This is getting ugly. Start NOW, or start rehearsing your 'my dog died' excuse email to the professor.",
+    "Oh nice, so you've been 'meaning to start' this. How's that strategy working out for you? The clock has no chill.",
+    "You've officially entered 'panic disguised as calm' territory. We can see right through you. Start.",
+    "The orange zone: where good intentions go to die and deadlines quietly question your life choices.",
+    "At this point your assignment has given up on you ever starting it. Prove it wrong. NOW.",
+  ],
+  red: [
+    "RED ZONE. This is not a vibe. This is a five-alarm, full-scale, academic emergency. START. NOW.",
+    "You are absolutely in trouble. Like, 'call your professor and explain your grandma's third funeral' trouble.",
+    "Congratulations on unlocking 'Maximum Suffering' mode. Your GPA is on the phone — it says it's disappointed.",
+    "At this point, your deadline is more of an aspiration than a plan. Drop everything. Open the document. NOW.",
+    "Not after one video. Not after dinner. Not 'in a bit'. NOW. This very second. I'm watching you.",
+  ],
+  overdue: [
+    "Oh wait, this is already OVERDUE. You're not planning — you're doing damage control. Time to grovel.",
+    "Plot twist: the deadline already passed. Bold strategy. Bold, catastrophic strategy.",
+    "This is overdue. Which means you're not stressing about the future — you're reckoning with the past.",
+  ],
+  dueToday: [
+    "Due TODAY. As in this rotating-Earth day. As in HOURS remain, not days. Why are you reading this?!",
+    "It's due TODAY. Stop reading. Start writing. IMMEDIATELY. Go. I mean it.",
+  ],
+  dueTomorrow: [
+    "Due TOMORROW. One night. Heroic or tragic — the jury deliberates.",
+    "Tomorrow's deadline calls and says hi. It also says 'you really should've started me a week ago.'",
+  ],
+  notStarted: [
+    " And it's at 0%. You haven't even opened the document, have you? Just staring at the void.",
+    " Oh, 0% progress — the purest form of academic optimism. Or denial. Probably denial.",
+  ],
+};
+
+function aiGetWarning(riskData, a) {
+  const { risk, daysLeft } = riskData;
+  const lvl = aiRiskLevel(risk);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  let w;
+  if (daysLeft < 0)   { w = pick(AI_WARNINGS.overdue); }
+  else if (daysLeft === 0) { w = pick(AI_WARNINGS.dueToday); }
+  else {
+    w = pick(AI_WARNINGS[lvl.cls]);
+    if (daysLeft === 1) w += ' ' + pick(AI_WARNINGS.dueTomorrow);
+    if (a.progress === 0 && risk > 40) w += pick(AI_WARNINGS.notStarted);
+  }
+  return w;
+}
+
+function aiGetPlan(riskData, a) {
+  const { daysLeft, remainingWork } = riskData;
+  let start, daily, priority, priorityCls;
+  if (daysLeft <= 0) {
+    start = '⚡ RIGHT NOW (Overdue!)';
+    daily = Math.max(4, remainingWork).toFixed(1) + 'h';
+    priority = 'Critical'; priorityCls = 'critical';
+  } else if (riskData.risk > 80) {
+    start = 'Today — stop procrastinating';
+    daily = (remainingWork / Math.max(1, daysLeft)).toFixed(1) + 'h';
+    priority = 'Critical'; priorityCls = 'critical';
+  } else if (riskData.risk > 60) {
+    start = 'Today, no excuses';
+    daily = (remainingWork / Math.max(1, daysLeft)).toFixed(1) + 'h';
+    priority = 'High'; priorityCls = 'high';
+  } else if (riskData.risk > 30) {
+    start = 'By tomorrow';
+    daily = (remainingWork / Math.max(1, daysLeft) * 1.15).toFixed(1) + 'h';
+    priority = 'Medium'; priorityCls = 'medium';
+  } else {
+    const buffer = Math.floor(daysLeft * 0.35);
+    start = buffer > 0 ? `Within ${buffer} days` : 'Soon';
+    daily = (remainingWork / Math.max(1, daysLeft * 0.65)).toFixed(1) + 'h';
+    priority = 'Low'; priorityCls = 'low';
+  }
+  return { start, daily, priority, priorityCls };
+}
+
+function aiOverallSummary(results) {
+  const avgRisk = results.reduce((s, r) => s + r.riskData.risk, 0) / (results.length || 1);
+  const redCount    = results.filter(r => r.riskData.risk > 80).length;
+  const orangeCount = results.filter(r => r.riskData.risk > 60).length;
+  const overdueCount = results.filter(r => r.riskData.daysLeft < 0).length;
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const SUMMARIES = {
+    ok: [
+      "Miraculously under control… for now. Don't celebrate.",
+      "You're actually doing okay. This is not normal for you. Enjoy it.",
+      "Suspiciously manageable. You must have started early for once. Who are you?",
+    ],
+    warn: [
+      "You're barely surviving this week. Triage mode: activated.",
+      "Proceeding at acceptable chaos levels. Dangerous, but technically workable.",
+      "Half your assignments are silently judging you. Time to make amends.",
+    ],
+    danger: [
+      "This is a disaster waiting to happen. Actually, it might already be happening.",
+      "Your academic life is on fire and you brought marshmallows. Classic.",
+      "Everything is screaming for your attention. EVERYTHING. Simultaneously.",
+    ],
+  };
+  let type = redCount >= 2 || avgRisk > 68 ? 'danger' : orangeCount >= 2 || avgRisk > 42 ? 'warn' : 'ok';
+  return { type, msg: pick(SUMMARIES[type]), avgRisk: Math.round(avgRisk), redCount, orangeCount, overdueCount };
+}
+
+function runAnalysis() {
+  aiProfileChanged();
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true; btn.textContent = '⏳ Analyzing...';
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Re-analyze';
+
+    const active = assignments.filter(a => a.status !== 'done');
+    if (!active.length) {
+      document.getElementById('ai-results').innerHTML = `
+        <div class="ai-empty">
+          <div class="ai-empty-icon">🏆</div>
+          <h3>All Clear, Champion!</h3>
+          <p>No active assignments. Either you're incredibly organized or dangerously good at clicking 'Done'. Either way — respect.</p>
+        </div>`;
+      return;
+    }
+
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const results = active.map(a => {
+      const riskData = aiCalcRisk(a);
+      const level   = aiRiskLevel(riskData.risk);
+      const warning = aiGetWarning(riskData, a);
+      const plan    = aiGetPlan(riskData, a);
+      return { a, riskData, level, warning, plan };
+    }).sort((x, y) => y.riskData.risk - x.riskData.risk);
+
+    const summary = aiOverallSummary(results);
+    const bannerIcon = { ok:'🎯', warn:'⚠️', danger:'🔥' }[summary.type];
+    const avgColor  = { ok:'var(--green)', warn:'var(--amber)', danger:'var(--red)' }[summary.type];
+
+    let html = `
+      <div class="ai-summary-banner ${summary.type}">
+        <div class="ai-summary-icon">${bannerIcon}</div>
+        <div class="ai-summary-text">
+          <h2>${summary.msg}</h2>
+          <p>${results.length} active assignment${results.length !== 1 ? 's' : ''} analyzed using your study profile. Results sorted by risk — highest first.</p>
+          <div class="ai-summary-stats">
+            <div class="ai-stat">
+              <div class="ai-stat-num" style="color:${avgColor}">${summary.avgRisk}%</div>
+              <div class="ai-stat-label">Avg Risk</div>
+            </div>
+            <div class="ai-stat">
+              <div class="ai-stat-num" style="color:var(--red)">${summary.redCount}</div>
+              <div class="ai-stat-label">Red Zone</div>
+            </div>
+            <div class="ai-stat">
+              <div class="ai-stat-num" style="color:#e07a00">${summary.orangeCount}</div>
+              <div class="ai-stat-label">Orange Zone</div>
+            </div>
+            <div class="ai-stat">
+              <div class="ai-stat-num" style="color:var(--text2)">${summary.overdueCount}</div>
+              <div class="ai-stat-label">Overdue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="risk-sort-note">📊 Sorted by miss probability — your biggest fire first.</div>
+      <div class="risk-cards-grid">
+    `;
+
+    results.forEach(({ a, riskData, level, warning, plan }, idx) => {
+      const parts = a.due.split('-');
+      const dueDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+      const dueDateStr = `${dueDate.getDate()} ${months[dueDate.getMonth()]} ${dueDate.getFullYear()}`;
+      const daysStr = riskData.daysLeft < 0
+        ? `${Math.abs(riskData.daysLeft)}d overdue 🔥`
+        : riskData.daysLeft === 0 ? 'Due TODAY! 🚨'
+        : riskData.daysLeft === 1 ? 'Due TOMORROW ⏰'
+        : `${riskData.daysLeft} days left`;
+
+      html += `
+        <div class="risk-card level-${level.cls}" style="animation-delay:${idx * 0.09}s">
+          <div class="risk-card-accent ${level.cls}"></div>
+          <div class="risk-card-top">
+            <div class="risk-card-title-row">
+              <div class="risk-card-title">${a.title}</div>
+              <span class="risk-badge ${level.cls}">${level.label}</span>
+            </div>
+            <div class="risk-meta">
+              <div class="risk-meta-item">📚 <strong>${a.subject}</strong></div>
+              <div class="risk-meta-item">📅 <strong>${dueDateStr}</strong></div>
+              <div class="risk-meta-item">⏰ <strong>${daysStr}</strong></div>
+              <div class="risk-meta-item">⚡ <strong>${a.progress}% done</strong></div>
+              <div class="risk-meta-item">🕐 <strong>~${riskData.effort}h total est.</strong></div>
+            </div>
+            <div>
+              <div class="risk-meter-label">
+                <span>Miss probability</span>
+                <span class="risk-pct ${level.cls}">${riskData.risk}%</span>
+              </div>
+              <div class="risk-meter-bar">
+                <div class="risk-meter-fill ${level.cls}" data-target="${riskData.risk}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="risk-card-body">
+            <div class="warning-box">
+              <span class="warning-icon">${level.cls === 'green' ? '😌' : level.cls === 'yellow' ? '😤' : level.cls === 'orange' ? '😰' : '😱'}</span>
+              <span class="warning-text">${warning}</span>
+            </div>
+            <div class="plan-box">
+              <div class="plan-box-title">📋 Suggested Plan</div>
+              <div class="plan-items">
+                <div class="plan-item">
+                  <div class="plan-item-label">Start</div>
+                  <div class="plan-item-val ${plan.priorityCls}">${plan.start}</div>
+                </div>
+                <div class="plan-item">
+                  <div class="plan-item-label">Daily Work</div>
+                  <div class="plan-item-val">${plan.daily}/day</div>
+                </div>
+                <div class="plan-item">
+                  <div class="plan-item-label">Priority</div>
+                  <div class="plan-item-val ${plan.priorityCls}">${plan.priority}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += '</div>';
+    document.getElementById('ai-results').innerHTML = html;
+
+    // Animate meter bars after DOM paint
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.risk-meter-fill[data-target]').forEach(el => {
+          el.style.width = el.dataset.target + '%';
+        });
+      }, 80);
+    });
+  }, 600);
+}
+
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderCalendar() {
+  const grid=document.getElementById('calGrid');
+  document.getElementById('calTitle').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  const deadlineDays=new Set(assignments.map(a=>{const p=a.due.split('-');if(+p[0]===calYear&&+p[1]-1===calMonth)return +p[2];return null;}).filter(Boolean));
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const lastDate=new Date(calYear,calMonth+1,0).getDate();
+  const prevLast=new Date(calYear,calMonth,0).getDate();
+  const today=new Date();
+  const days=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let html=days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day other-month">${prevLast-firstDay+i+1}</div>`;
+  for(let d=1;d<=lastDate;d++){
+    const isToday=d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    const hasDeadline=deadlineDays.has(d);
+    html+=`<div class="cal-day ${isToday?'today':''} ${hasDeadline?'has-deadline':''}">${d}</div>`;
+  }
+  grid.innerHTML=html;
+}
+
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();openModal();}
+  if(e.key==='Escape')closeModal();
+});
+
+renderTable();
+renderCalendar();
+aiLoadProfile();
+</script>
+</body>
+</html>
